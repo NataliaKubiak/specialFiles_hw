@@ -14,10 +14,7 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,15 +22,22 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) {
+        //Task 1
         String[] columnMapping = {"id", "firstName", "lastName", "country", "age"};
         List<Employee> staff = parseCSV(Employee.class, columnMapping, "data.csv");
         String employeesJsonString1 = listToJson(staff);
         writeString(employeesJsonString1, "data.json");
 
+        //Task 2
         List<Employee> staff2 = parseXML("data.xml");
-        System.out.println(staff2);
         String employeesJsonString2 = listToJson(staff2);
         writeString(employeesJsonString2, "data2.json");
+
+        //Task 3
+        List<Employee> employees = parseJSON("data.json");
+        for (Employee emp : employees) {
+            System.out.println(emp);
+        }
     }
 
     private static <T> List<T> parseCSV(Class<T> type, String[] columnMapping, String inputFileName) {
@@ -104,5 +108,24 @@ public class Main {
                 readXML(node1, empList);
             }
         }
+    }
+
+    private static List<Employee> parseJSON(String jsonPath) {
+        List<Employee> employees = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(jsonPath))) {
+            StringBuilder jsonString = new StringBuilder();
+            String str;
+            while ((str = reader.readLine()) != null) {
+                jsonString.append(str);
+            }
+
+            Gson gson = new Gson();
+            Type listType = new TypeToken<List<Employee>>() {
+            }.getType();
+            employees = gson.fromJson(String.valueOf(jsonString), listType);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return employees;
     }
 }
