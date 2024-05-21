@@ -7,7 +7,14 @@ import com.opencsv.CSVReader;
 import com.opencsv.bean.ColumnPositionMappingStrategy;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -20,10 +27,13 @@ public class Main {
     public static void main(String[] args) {
         String[] columnMapping = {"id", "firstName", "lastName", "country", "age"};
         List<Employee> staff = parseCSV(Employee.class, columnMapping, "data.csv");
+        String employeesJsonString1 = listToJson(staff);
+        writeString(employeesJsonString1, "data.json");
 
-        String employeesJsonString = listToJson(staff);
-
-        writeString(employeesJsonString, "data.json");
+        List<Employee> staff2 = parseXML("data.xml");
+        System.out.println(staff2);
+        String employeesJsonString2 = listToJson(staff2);
+        writeString(employeesJsonString2, "data2.json");
     }
 
     private static <T> List<T> parseCSV(Class<T> type, String[] columnMapping, String inputFileName) {
@@ -59,6 +69,40 @@ public class Main {
             writer.flush();
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
+        }
+    }
+
+    private static List<Employee> parseXML(String xmlPath) {
+        List<Employee> empList = new ArrayList<>();
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(new File(xmlPath));
+
+            Node root = doc.getDocumentElement();
+            readXML(root, empList);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return empList;
+    }
+
+    private static void readXML(Node node, List<Employee> empList) {
+        NodeList nodeList = node.getChildNodes();
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            Node node1 = nodeList.item(i);
+            if (Node.ELEMENT_NODE == node1.getNodeType()) {
+                Element elem = (Element) node1;
+                if ("employee".equals(node1.getNodeName())) {
+                    long id = Long.parseLong(elem.getElementsByTagName("id").item(0).getTextContent());
+                    String firstName = elem.getElementsByTagName("firstName").item(0).getTextContent();
+                    String lastName = elem.getElementsByTagName("lastName").item(0).getTextContent();
+                    String country = elem.getElementsByTagName("country").item(0).getTextContent();
+                    int age = Integer.parseInt(elem.getElementsByTagName("age").item(0).getTextContent());
+                    empList.add(new Employee(id, firstName, lastName, country, age));
+                }
+                readXML(node1, empList);
+            }
         }
     }
 }
