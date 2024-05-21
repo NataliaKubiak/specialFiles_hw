@@ -1,4 +1,4 @@
-package task1_CSVtoJSON;
+package Main;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

@@ -1,4 +1,4 @@
-package task1_CSVtoJSON;
+package Main;
 
 public class Employee {
 
